@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -8,6 +9,11 @@ public class MovieCollection
 {
     private ArrayList<Movie> movies;
     private ArrayList<String> actors;
+    private ArrayList<String> genres;
+
+    private Movie[] top50Rated;
+    private int greatestRevenue;
+    private Movie[] top50Revenue;
     private Scanner scanner;
 
     public MovieCollection(String fileName)
@@ -19,6 +25,30 @@ public class MovieCollection
     public ArrayList<Movie> getMovies()
     {
         return movies;
+    }
+
+    public void getTop50Rated() {
+        double highestRate = -1;
+        double ratingBefore;
+        double ratingAfter;
+        ArrayList<Movie> sortedMovies = new ArrayList<Movie>();
+        for (Movie movie : movies) {
+            if (movie.getUserRating() > highestRate) {
+                sortedMovies.add(0, movie);
+            }
+            else {
+                for (int x = 1; x < sortedMovies.size(); x ++) {
+                    ratingBefore = sortedMovies.get(x - 1).getUserRating();
+                    ratingAfter = sortedMovies.get(x).getUserRating();
+                    if ((movie.getUserRating() > ratingAfter) && (movie.getUserRating() < ratingBefore)) {
+                        sortedMovies.add(x, movie);
+                    }
+                }
+            }
+        }
+        for (int x = 0; x < 51; x ++) {
+
+        }
     }
 
     public void menu()
@@ -105,7 +135,7 @@ public class MovieCollection
         }
 
         // sort the results by title
-        this.sortCastResults(results);
+        this.sortMovieResults(results);
 
         // now, display them all to the user
         for (int i = 0; i < results.size(); i++)
@@ -183,14 +213,44 @@ public class MovieCollection
         System.out.print("Enter a cast search name: ");
         String castName = scanner.nextLine();
         castName = castName.toLowerCase();
+        String tempName;
 
-        ArrayList<String> results = new ArrayList<String>();
+        ArrayList<String> actorResults = new ArrayList<String>();
         for (String name : actors) {
-            if (name.contains(castName)) {
-                results.add(name);
+            tempName = name.toLowerCase();
+            if (tempName.contains(castName)) {
+                actorResults.add(name);
             }
         }
-        sortCastResults(results);
+        sortCastResults(actorResults);
+
+        for (int x = 0; x < actorResults.size(); x ++) {
+            System.out.println((x + 1) + ". " + actorResults.get(x));
+        }
+
+        System.out.println("Which actor would you like to learn more about? ");
+        System.out.print("Enter number: ");
+        int num = scanner.nextInt();
+        String targetActor = actorResults.get(num - 1);
+
+        ArrayList<Movie> movieResults = new ArrayList<Movie>();
+        for (Movie movie : movies) {
+            if (movie.getCast().contains(targetActor)) {
+                movieResults.add(movie);
+            }
+        }
+        this.sortMovieResults(movieResults);
+
+        for (int x = 0; x < movieResults.size(); x ++) {
+            System.out.println((x + 1) + ". " + movieResults.get(x).getTitle());
+        }
+
+        System.out.println("Which movie would you like to learn more about?");
+        System.out.print("Enter number: ");
+        num = scanner.nextInt();
+        displayMovieInfo(movieResults.get(num - 1));
+        System.out.println("\n ** Press Enter to Return to Main Menu **");
+        scanner.nextLine();
 
     }
 
@@ -205,7 +265,7 @@ public class MovieCollection
                 results.add(movie);
             }
         }
-        this.sortCastResults(results);
+        this.sortMovieResults(results);
 
         for (int x = 0; x < results.size(); x ++) {
             System.out.println((x + 1) + ". " + results.get(x).getTitle());
@@ -220,9 +280,34 @@ public class MovieCollection
         scanner.nextLine();
     }
 
-    private void listGenres()
-    {
+    private void listGenres() {
+        for (int x = 0; x < genres.size(); x ++) {
+            System.out.println((x + 1) + "." + genres.get(x));
+        }
+        System.out.println("Which genre are you interested in? ");
+        System.out.print("Enter number: ");
+        int num = scanner.nextInt();
+        String targetGenre = genres.get(num);
 
+        ArrayList<Movie> results = new ArrayList<Movie>();
+        for (Movie movie : movies) {
+            if (movie.getGenres().contains(targetGenre)) {
+                results.add(movie);
+            }
+        }
+        this.sortMovieResults(results);
+
+        for (int x = 0; x < results.size(); x ++) {
+            System.out.println((x + 1) + ". " + results.get(x).getTitle());
+        }
+
+        System.out.println("Which movie would you like to learn more about?");
+        System.out.print("Enter number: ");
+        num = scanner.nextInt();
+        displayMovieInfo(results.get(num - 1));
+
+        System.out.println("\n ** Press Enter to Return to Main Menu **");
+        scanner.nextLine();
     }
 
     private void listHighestRated()
@@ -244,6 +329,15 @@ public class MovieCollection
         return false;
     }
 
+    private boolean isGenreFound(String genre) {
+        for (int x = 0; x < genres.size(); x ++) {
+            if (genres.get(x).equals(genre)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void importMovieList(String fileName)
     {
         try
@@ -254,6 +348,9 @@ public class MovieCollection
 
             movies = new ArrayList<Movie>();
             actors = new ArrayList<String>();
+            genres = new ArrayList<String>();
+            top50Rated = new Movie[50];
+            top50Revenue = new Movie[50];
 
             while ((line = bufferedReader.readLine()) != null)
             {
@@ -261,23 +358,33 @@ public class MovieCollection
 
                 String title = movieFromCSV[0];
                 String cast = movieFromCSV[1];
+
                 String[] actorsArray = cast.split("\\|");
                 for (String actor : actorsArray) {
                     if (!isActorFound(actor)) {
                         actors.add(actor);
                     }
                 }
+
                 String director = movieFromCSV[2];
                 String tagline = movieFromCSV[3];
                 String keywords = movieFromCSV[4];
                 String overview = movieFromCSV[5];
                 int runtime = Integer.parseInt(movieFromCSV[6]);
-                String genres = movieFromCSV[7];
+
+                String thisMovieGenre = movieFromCSV[7];
+                String[] genreArray = thisMovieGenre.split("\\|");
+                for (String genre : genreArray) {
+                    if (!isGenreFound(genre)) {
+                        genres.add(genre);
+                    }
+                }
+
                 double userRating = Double.parseDouble(movieFromCSV[8]);
                 int year = Integer.parseInt(movieFromCSV[9]);
                 int revenue = Integer.parseInt(movieFromCSV[10]);
 
-                Movie nextMovie = new Movie(title, cast, director, tagline, keywords, overview, runtime, genres, userRating, year, revenue);
+                Movie nextMovie = new Movie(title, cast, director, tagline, keywords, overview, runtime, thisMovieGenre, userRating, year, revenue);
                 movies.add(nextMovie);
             }
             bufferedReader.close();
