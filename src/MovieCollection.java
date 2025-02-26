@@ -1,7 +1,6 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -29,12 +28,18 @@ public class MovieCollection
 
     public void getTop50Rated() {
         double highestRate = -1;
+        double lowestRate = 100;
         double ratingBefore;
         double ratingAfter;
         ArrayList<Movie> sortedMovies = new ArrayList<Movie>();
         for (Movie movie : movies) {
             if (movie.getUserRating() > highestRate) {
                 sortedMovies.add(0, movie);
+                highestRate = movie.getUserRating();
+            }
+            else if (movie.getUserRating() < lowestRate) {
+                sortedMovies.add(movie);
+                lowestRate = movie.getUserRating();
             }
             else {
                 for (int x = 1; x < sortedMovies.size(); x ++) {
@@ -46,8 +51,44 @@ public class MovieCollection
                 }
             }
         }
-        for (int x = 0; x < 51; x ++) {
+        System.out.println();
+        System.out.println("length of sorted: " + sortedMovies.size());
+        System.out.println();
+        for (int x = 0; x < 50; x ++) {
+            top50Rated[x] = sortedMovies.get(x);
+        }
+    }
 
+    public void getTop50Revenue() {
+        int highestRevenue = -1;
+        int lowestRevenue = Integer.MAX_VALUE;
+        int revenueBefore;
+        int revenueAfter;
+        ArrayList<Movie> sortedMovies = new ArrayList<Movie>();
+        for (Movie movie : movies) {
+            if (movie.getRevenue() >= highestRevenue) {
+                sortedMovies.add(0, movie);
+                highestRevenue = movie.getRevenue();
+            }
+            else if (movie.getUserRating() <= lowestRevenue) {
+                sortedMovies.add(movie);
+                lowestRevenue = movie.getRevenue();
+            }
+            else {
+                for (int x = 1; x < sortedMovies.size(); x ++) {
+                    revenueBefore = sortedMovies.get(x - 1).getRevenue();
+                    revenueAfter = sortedMovies.get(x).getRevenue();
+                    if (((movie.getRevenue() > revenueAfter) && (movie.getRevenue() < revenueBefore)) || (movie.getRevenue() == revenueBefore) || (movie.getRevenue() == revenueAfter)) {
+                        sortedMovies.add(x, movie);
+                    }
+                }
+            }
+        }
+        System.out.println();
+        System.out.println("length of sorted: " + sortedMovies.size());
+        System.out.println();
+        for (int x = 0; x < 50; x ++) {
+            top50Revenue[x] = sortedMovies.get(x);
         }
     }
 
@@ -310,14 +351,43 @@ public class MovieCollection
         scanner.nextLine();
     }
 
-    private void listHighestRated()
-    {
+    private void listHighestRated() {
+        getTop50Rated();
+        System.out.println();
+        System.out.println("length of top50Rated: " + top50Rated.length);
+        System.out.println();
 
+        for (int x = 0; x < 50; x ++) {
+            System.out.println((x + 1) + "." + top50Rated[x].getTitle());
+        }
+
+        System.out.println("Which movie would you like to learn more about?");
+        System.out.print("Enter number: ");
+        int num = scanner.nextInt();
+        displayMovieInfo(top50Rated[num - 1]);
+
+        System.out.println("\n ** Press Enter to Return to Main Menu **");
+        scanner.nextLine();
     }
 
-    private void listHighestRevenue()
-    {
+    private void listHighestRevenue() {
+        getTop50Revenue();
 
+        System.out.println();
+        System.out.println("length of top50Revenue: " + top50Revenue.length);
+        System.out.println();
+
+        for (int x = 0; x < 50; x ++) {
+            System.out.println((x + 1) + "." + top50Revenue[x].getTitle());
+        }
+
+        System.out.println("Which movie would you like to learn more about?");
+        System.out.print("Enter number: ");
+        int num = scanner.nextInt();
+        displayMovieInfo(top50Revenue[num - 1]);
+
+        System.out.println("\n ** Press Enter to Return to Main Menu **");
+        scanner.nextLine();
     }
 
     private boolean isActorFound(String actor) {
