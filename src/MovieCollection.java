@@ -30,7 +30,7 @@ public class MovieCollection
         ArrayList<Movie> sortedMovies = new ArrayList<Movie>();
         Movie currentMovie;
         double current;
-        double next;
+        boolean isAdded;
         for (int x = 0; x < movies.size(); x ++) {
             currentMovie = movies.get(x);
             if (sortedMovies.size() == 0) {
@@ -45,36 +45,63 @@ public class MovieCollection
                 }
 
                 else {
+                    isAdded = false;
                     for (int y = 0; y < sortedMovies.size() - 1; y ++) {
                         current = sortedMovies.get(y).getUserRating();
-                        next = sortedMovies.get(y + 1).getUserRating();
-                        if ((currentMovie.getUserRating() < current) && (currentMovie.getUserRating() > next)) {
-                            sortedMovies.add(y + 1, currentMovie);
-                            break;
-                        }
-                        else if (current == currentMovie.getUserRating()) {
+                        if (currentMovie.getUserRating() >= current) {
                             sortedMovies.add(y, currentMovie);
+                            isAdded = true;
                             break;
                         }
-                        else if (next == currentMovie.getUserRating()) {
-                            if (!isMoviefound(currentMovie, sortedMovies)) {
-                                sortedMovies.add(y + 1, currentMovie);
-                            }
-                        }
+                    }
+                    if (!isAdded) {
+                        sortedMovies.add(currentMovie);
                     }
                 }
             }
         }
-
-        System.out.println("sorted size = " + sortedMovies.size());
-
         for (int x = 0; x < 50; x ++) {
             top50Rated[x] = sortedMovies.get(x);
         }
     }
 
     public void getTop50Revenue() {
+        ArrayList<Movie> sortedMovies = new ArrayList<Movie>();
+        Movie currentMovie;
+        int current;
+        boolean isAdded;
+        for (int x = 0; x < movies.size(); x ++) {
+            currentMovie = movies.get(x);
+            if (sortedMovies.size() == 0) {
+                sortedMovies.add(currentMovie);
+            }
+            else {
+                if (currentMovie.getRevenue() > sortedMovies.get(0).getRevenue()) {
+                    sortedMovies.add(0, currentMovie);
+                }
+                else if (currentMovie.getRevenue() < sortedMovies.get(sortedMovies.size() - 1).getRevenue()) {
+                    sortedMovies.add(currentMovie);
+                }
 
+                else {
+                    isAdded = false;
+                    for (int y = 0; y < sortedMovies.size() - 1; y ++) {
+                        current = sortedMovies.get(y).getRevenue();
+                        if (currentMovie.getRevenue() >= current) {
+                            sortedMovies.add(y, currentMovie);
+                            isAdded = true;
+                            break;
+                        }
+                    }
+                    if (!isAdded) {
+                        sortedMovies.add(currentMovie);
+                    }
+                }
+            }
+        }
+        for (int x = 0; x < 50; x ++) {
+            top50Revenue[x] = sortedMovies.get(x);
+        }
     }
 
     public void menu()
@@ -340,7 +367,7 @@ public class MovieCollection
         getTop50Rated();
 
         for (int x = 0; x < 50; x ++) {
-            System.out.println((x + 1) + "." + top50Rated[x].getTitle() + " " + top50Rated[x].getUserRating());
+            System.out.println((x + 1) + "." + top50Rated[x].getTitle());
         }
 
         System.out.println("Which movie would you like to learn more about?");
@@ -354,10 +381,6 @@ public class MovieCollection
 
     private void listHighestRevenue() {
         getTop50Revenue();
-
-        System.out.println();
-        System.out.println("length of top50Revenue: " + top50Revenue.length);
-        System.out.println();
 
         for (int x = 0; x < 50; x ++) {
             System.out.println((x + 1) + "." + top50Revenue[x].getTitle());
@@ -375,18 +398,6 @@ public class MovieCollection
     private boolean isActorFound(String actor) {
         for (int x = 0; x < actors.size(); x ++) {
             if (actors.get(x).equals(actor)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isMoviefound(Movie target, ArrayList<Movie> movieArray) {
-        String targetTitle = target.getTitle().toLowerCase();
-        String title;
-        for (int x = 0; x < movieArray.size(); x ++) {
-            title = movieArray.get(x).getTitle())
-            if (target.getTitle().equals() {
                 return true;
             }
         }
